@@ -1,7 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
 Imports System.Collections.Generic
-Imports Newtonsoft.Json
+Imports System.Text.Json
 Public Module Application
 	Public Settings As Settings
 	Public Display As Display
@@ -10,20 +10,20 @@ Public Module Application
 	Public Sub Main()
 		Random = New Random
 		Settings = New Settings
-		Display = New Display(Settings)
-		'Dim Population As New Population(Settings)
-		Game = New Game(Settings)
-		UpdateUI()
-		Game.Run()
+		'Display = New Display(Settings)
+		Dim Population As New Population(Settings)
+		'Game = New Game(Settings)
+		'UpdateUI()
+		'Game.Run()
 	End Sub
 	Public Function RNG(LowerBound As Double, UpperBound As Double) As Double
 		Return Random.NextDouble * (UpperBound - LowerBound) + LowerBound
 	End Function
 	Public Function SerializeNetwork(Network As Network) As String
-		Return JsonConvert.SerializeObject(Network)
+		Return JsonSerializer.Serialize(Network)
 	End Function
 	Public Function DeserializeNetwork(JSON As String) As Network
-		Return JsonConvert.DeserializeObject(Of Network)(JSON)
+		Return JsonSerializer.Deserialize(Of Network)(JSON)
 	End Function
 	Public Sub SaveNetwork(File As String, Network As Network)
 		Dim swLog As New IO.StreamWriter(File, True)
