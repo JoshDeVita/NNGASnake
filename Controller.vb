@@ -10,11 +10,11 @@ Public Module Application
 	Public Sub Main()
 		Random = New Random
 		Settings = New Settings
-		'Display = New Display(Settings)
+		Display = New Display(Settings)
 		Dim Population As New Population(Settings)
-		'Game = New Game(Settings)
-		'UpdateUI()
-		'Game.Run()
+		Game = New Game(Settings, Population.Networks.Item(0))
+		UpdateUI()
+		Game.Run()
 	End Sub
 	Public Function RNG(LowerBound As Double, UpperBound As Double) As Double
 		Return Random.NextDouble * (UpperBound - LowerBound) + LowerBound

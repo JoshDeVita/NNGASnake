@@ -6,13 +6,15 @@ Imports System.Drawing
 
 Public Class Game
     Private Shared Property Settings As Settings
+    Private Property Network As Network
     Public Property Snake As Snake
     Public Property Fruit As Fruit
     Public Property Score As Integer
     Public Property Timer As Integer
     Public Property Clock As Integer
-    Public Sub New(Setting As Settings)
+    Public Sub New(Setting As Settings, NN As Network)
         Settings = Setting
+        Network = NN
 
         Score = 0
         Timer = 500
@@ -26,20 +28,33 @@ Public Class Game
     End Sub
     Public Sub Run()
         Do Until Gameover
-            Snake.Move(CInt(InputBox("Enter a direction" & vbCrLf &
-                                "X Fruit: " & FruitDistX & vbCrLf &
-                                "Y Fruit: " & FruitDistY & vbCrLf &
-                                "X+ Wall: " & WallDistPosX & vbCrLf &
-                                "Y+ Wall: " & WallDistPosY & vbCrLf &
-                                "X- Wall: " & WallDistNegX & vbCrLf &
-                                "Y- Wall: " & WallDistNegY & vbCrLf &
-                                "X+ Snake: " & BodyDistPosX & vbCrLf &
-                                "Y+ Snake: " & BodyDistPosY & vbCrLf &
-                                "X- Snake: " & BodyDistNegX & vbCrLf &
-                                "Y- Snake: " & BodyDistNegY & vbCrLf &
-                                "Score: " & Score & vbCrLf &
-                                "Timer: " & Timer & vbCrLf &
-                                "Clock: " & Clock)))
+            Dim Stats As New List(Of Integer) From {
+                FruitDistX,
+                FruitDistY,
+                WallDistPosX,
+                WallDistNegX,
+                WallDistPosY,
+                WallDistNegY,
+                BodyDistPosX,
+                BodyDistNegX,
+                BodyDistPosY,
+                BodyDistNegY
+            }
+            Snake.Move(Network.Calculate(Stats))
+            'Snake.Move(CInt(InputBox("Enter a direction" & vbCrLf &
+            '                    "X Fruit: " & FruitDistX & vbCrLf &
+            '                    "Y Fruit: " & FruitDistY & vbCrLf &
+            '                    "X+ Wall: " & WallDistPosX & vbCrLf &
+            '                    "Y+ Wall: " & WallDistPosY & vbCrLf &
+            '                    "X- Wall: " & WallDistNegX & vbCrLf &
+            '                    "Y- Wall: " & WallDistNegY & vbCrLf &
+            '                    "X+ Snake: " & BodyDistPosX & vbCrLf &
+            '                    "Y+ Snake: " & BodyDistPosY & vbCrLf &
+            '                    "X- Snake: " & BodyDistNegX & vbCrLf &
+            '                    "Y- Snake: " & BodyDistNegY & vbCrLf &
+            '                    "Score: " & Score & vbCrLf &
+            '                    "Timer: " & Timer & vbCrLf &
+            '                    "Clock: " & Clock)))
             If SnakeInFood() Then
                 Score += 1
                 Timer += Settings.TimerBump

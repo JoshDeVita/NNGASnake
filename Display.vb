@@ -29,16 +29,17 @@ Public Class Display
     Private Sub initializeWindow()
         Dim Length As UInteger = CUInt(Settings.WindowSize + Settings.Buffer * 2)
         Window = New RenderWindow(New VideoMode(Length, Length), "Snake")
+        Window.SetFramerateLimit(5)
     End Sub
     Public Sub DrawGrid()
         drawRectangle(Settings.WindowSize, Settings.WindowSize, Color.White, Color.Transparent, Settings.Buffer, Settings.Buffer, 3)
 
-        'Draw all inner lines
-        Grid = New List(Of RectangleShape)
-        For i = 1 To Settings.GridSquares
-            drawRectangle(1, Settings.WindowSize, Color.Transparent, Color.White, Settings.Buffer + SquareSize * i, Settings.Buffer) 'vertical lines
-            drawRectangle(Settings.WindowSize, 1, Color.Transparent, Color.White, Settings.Buffer, Settings.Buffer + SquareSize * i) 'horizontal lines
-        Next
+        ''Draw all inner lines
+        'Grid = New List(Of RectangleShape)
+        'For i = 1 To Settings.GridSquares
+        '    drawRectangle(1, Settings.WindowSize, Color.Transparent, Color.White, Settings.Buffer + SquareSize * i, Settings.Buffer) 'vertical lines
+        '    drawRectangle(Settings.WindowSize, 1, Color.Transparent, Color.White, Settings.Buffer, Settings.Buffer + SquareSize * i) 'horizontal lines
+        'Next
 
     End Sub
     Private Sub drawRectangle(Width As Single, Height As Single, Outline As Color, Fill As Color, X As Single, Y As Single, Optional Thickness As Single = 1)
