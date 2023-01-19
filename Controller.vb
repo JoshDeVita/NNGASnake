@@ -2,6 +2,8 @@
 Option Explicit On
 Imports System.Collections.Generic
 Imports System.Text.Json
+Imports Microsoft.VisualBasic.Devices
+
 Public Module Application
 	Public Settings As Settings
 	Public Display As Display
@@ -12,9 +14,14 @@ Public Module Application
 		Settings = New Settings
 		Display = New Display(Settings)
 		Dim Population As New Population(Settings)
-		Game = New Game(Settings, Population.Networks.Item(0))
-		UpdateUI()
-		Game.Run()
+		For Each Network In Population.Networks
+			For i = 1 To 5
+				Game = New Game(Settings, Network)
+				UpdateUI()
+				Game.Run()
+			Next
+		Next
+		SavePopulation(Population, 1)
 	End Sub
 	Public Function RNG(LowerBound As Double, UpperBound As Double) As Double
 		Return Random.NextDouble * (UpperBound - LowerBound) + LowerBound
@@ -29,6 +36,14 @@ Public Module Application
 		Dim swLog As New IO.StreamWriter(File, True)
 		swLog.WriteLine(SerializeNetwork(Network))
 		swLog.Close()
+	End Sub
+	Public Sub SavePopulation(Population As Population, Generation As Integer)
+		Dim swLog As New IO.StreamWriter(Settings.FolderPath & "Generation " & Generation & ".txt", False)
+		swLog.Close()
+
+		For Each Network In Population.Networks
+			SaveNetwork(Settings.FolderPath & "Generation " & Generation & ".txt", Network)
+		Next
 	End Sub
 	Public Sub UpdateUI() 'Draw and update the UI for every frame
 		If Settings.Visible = False Then Exit Sub
@@ -47,12 +62,12 @@ Public Module Application
 	End Sub
 End Module
 Public Class Settings
-	Public Property Visible As Boolean = True
+	Public Property Visible As Boolean = False
 	Public Property WindowSize As UInteger = 1200
 	Public Property Buffer As Integer = 10
 	Public Property GridSquares As Integer = 30
 	Public Property FolderPath As String = "C:\Code\Networks\"
-	Public Property PopulationSize As Integer = 100
+	Public Property PopulationSize As Integer = 1000
 	Public Property TimerLimit As Integer = 10000
 	Public Property TimerBump As Integer = 100
 End Class

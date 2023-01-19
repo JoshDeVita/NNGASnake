@@ -29,7 +29,7 @@ Public Class Display
     Private Sub initializeWindow()
         Dim Length As UInteger = CUInt(Settings.WindowSize + Settings.Buffer * 2)
         Window = New RenderWindow(New VideoMode(Length, Length), "Snake")
-        Window.SetFramerateLimit(5)
+        Window.SetFramerateLimit(60)
     End Sub
     Public Sub DrawGrid()
         drawRectangle(Settings.WindowSize, Settings.WindowSize, Color.White, Color.Transparent, Settings.Buffer, Settings.Buffer, 3)

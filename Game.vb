@@ -12,6 +12,7 @@ Public Class Game
     Public Property Score As Integer
     Public Property Timer As Integer
     Public Property Clock As Integer
+    Public Property Speed As Integer
     Public Sub New(Setting As Settings, NN As Network)
         Settings = Setting
         Network = NN
@@ -31,10 +32,6 @@ Public Class Game
             Dim Stats As New List(Of Integer) From {
                 FruitDistX,
                 FruitDistY,
-                WallDistPosX,
-                WallDistNegX,
-                WallDistPosY,
-                WallDistNegY,
                 BodyDistPosX,
                 BodyDistNegX,
                 BodyDistPosY,
@@ -57,6 +54,7 @@ Public Class Game
             '                    "Clock: " & Clock)))
             If SnakeInFood() Then
                 Score += 1
+                Speed = Clock
                 Timer += Settings.TimerBump
                 Snake.Grow()
                 Fruit = New Fruit()
@@ -71,7 +69,8 @@ Public Class Game
             End If
             UpdateUI()
         Loop
-        MsgBox("Game Over")
+        Network.Fitness.Add(Fitness)
+        'MsgBox("Game Over")
     End Sub
     ''' <summary> Get a random integer point within the bounds of the grid </summary>
     Public Shared Function RNGGrid(Optional Offset As Integer = 0) As Point
@@ -117,7 +116,7 @@ Public Class Game
     End Property
     Public ReadOnly Property Gameover() As Boolean
         Get
-            If PointInSnake(Snake.Head, True) Or Not PointInBounds(Snake.Head) Or Timer <= 0 Then
+            If PointInSnake(Snake.Head, True) Or Snake.TurnedAround Or Not PointInBounds(Snake.Head) Or Timer <= 0 Then
                 Return True
             Else
                 Return False
@@ -202,6 +201,12 @@ Public Class Game
             Return WallDistNegY
         End Get
     End Property
+    Public ReadOnly Property Fitness As Double
+        Get
+            If Score = 0 Or Speed = 0 Then Return 0
+            Return Score + (1 / Speed)
+        End Get
+    End Property
 End Class
 
 Public MustInherit Class GameElement
@@ -217,7 +222,9 @@ Public Class Snake
         Location.Add(Game.GetNewPoint(Random.Next(1, 4), Head))
     End Sub
     Public Property DeletedPoint As Point
+    Public Property LastNeck As Point
     Public Sub Move(Direction As Integer)
+        LastNeck = Location(1)
         Location.Insert(0, Game.GetNewPoint(Direction, Head))
         DeletedPoint = Location(Location.Count - 1)
         Location.RemoveAt(Location.Count - 1)
@@ -233,6 +240,15 @@ Public Class Snake
     Public ReadOnly Property Head As Point
         Get
             Return Location.Item(0)
+        End Get
+    End Property
+    Public ReadOnly Property TurnedAround As Boolean
+        Get
+            If Head = LastNeck Then
+                Return True
+            Else
+                Return False
+            End If
         End Get
     End Property
 End Class

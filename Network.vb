@@ -6,32 +6,31 @@ Public Class Population
 	Private Settings As Settings
 	Public Sub New(Setting As Settings)
 		Settings = Setting
-		Dim swLog As New IO.StreamWriter(Settings.FolderPath & "Generation 1.txt", False)
-		swLog.Close()
-
 		For i = 1 To Settings.PopulationSize
 			Networks.Add(New Network)
-			SaveNetwork(Settings.FolderPath & "Generation 1.txt", Networks.Item(Networks.Count - 1))
 		Next
+
+		SavePopulation(Me, 1)
 	End Sub
 End Class
 Public Class Network
-	Private ReadOnly Property Inputs As Integer = 10
+	Private ReadOnly Property Inputs As Integer = 6
 	Private ReadOnly Property Outputs As Integer = 4
 	Private ReadOnly Property LayerQTY As Integer = 2
 	Private ReadOnly Property NeuronQTY As Integer = 6
 	Public Property Neurons As New List(Of Neuron)
 	Public Property Synapses As New List(Of Synapse)
+	Public Property Fitness As New List(Of Double)
 	Public Sub New()
 		For i = 1 To totalNerons
 			If i <= Inputs Then
 				Neurons.Add(New Neuron)
 			Else
-				Neurons.Add(New Neuron With {.Bias = RNG(-1, 1)})
+				Neurons.Add(New Neuron With {.Bias = RNG(-10, 10)})
 			End If
 		Next
 		For i = 1 To totalSynapses
-			Synapses.Add(New Synapse With {.Weight = RNG(-2, 2)})
+			Synapses.Add(New Synapse With {.Weight = RNG(-5, 5)})
 		Next
 	End Sub
 	Private ReadOnly Property totalNerons As Integer
@@ -78,14 +77,24 @@ Public Class Network
 			Return List
 		End Get
 	End Property
+	Public ReadOnly Property AverageFitness As Double
+		Get
+			If Fitness.Count = 0 Then Return 0
+			Dim Total As Double = 0
+			For Each Score In Fitness
+				Total += Score
+			Next
+			Return Total / Fitness.Count
+		End Get
+	End Property
 
 	Public Function Calculate(InputValues As List(Of Integer)) As Integer
 		For i = 0 To Inputs - 1
 			Neurons.Item(i).Value = InputValues.Item(i)
 		Next
-		For Each Neuron In Layers.Item(0).Neurons
-			Neuron.Value = Sigmoid(Neuron.Value)
-		Next
+		'For Each Neuron In Layers.Item(0).Neurons
+		'	Neuron.Value = Sigmoid(Neuron.Value)
+		'Next
 		For i = 1 To Layers.Count - 1 'For each layer after the input layer
 			For j = 0 To Layers.Item(i).Neurons.Count - 1 'For each neuron in the layer
 				Dim Neuron As Neuron = Layers.Item(i).Neurons.Item(j)
