@@ -32,6 +32,10 @@ Public Class Game
             Dim Stats As New List(Of Integer) From {
                 FruitDistX,
                 FruitDistY,
+                WallDistPosX,
+                WallDistNegX,
+                WallDistPosY,
+                WallDistNegY,
                 BodyDistPosX,
                 BodyDistNegX,
                 BodyDistPosY,

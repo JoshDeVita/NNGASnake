@@ -15,7 +15,7 @@ Public Module Application
 		Display = New Display(Settings)
 		Dim Population As New Population(Settings)
 		For Each Network In Population.Networks
-			For i = 1 To 5
+			For i = 1 To Settings.Tests
 				Game = New Game(Settings, Network)
 				UpdateUI()
 				Game.Run()
@@ -62,12 +62,17 @@ Public Module Application
 	End Sub
 End Module
 Public Class Settings
-	Public Property Visible As Boolean = False
+	Public Property Visible As Boolean = True
 	Public Property WindowSize As UInteger = 1200
 	Public Property Buffer As Integer = 10
 	Public Property GridSquares As Integer = 30
+	Public Property FrameRate As Integer = 30
 	Public Property FolderPath As String = "C:\Code\Networks\"
-	Public Property PopulationSize As Integer = 1000
+	Public Property PopulationSize As Integer = 100
 	Public Property TimerLimit As Integer = 10000
 	Public Property TimerBump As Integer = 100
+	Public Property Tests As Integer = 1
+	Public Property RNGBounds As Integer = 10
+	Public Property LayerQTY As Integer = 2
+	Public Property NeuronQTY As Integer = 6
 End Class

@@ -7,40 +7,40 @@ Public Class Population
 	Public Sub New(Setting As Settings)
 		Settings = Setting
 		For i = 1 To Settings.PopulationSize
-			Networks.Add(New Network)
+			Networks.Add(New Network(Settings))
 		Next
 
 		SavePopulation(Me, 1)
 	End Sub
 End Class
 Public Class Network
-	Private ReadOnly Property Inputs As Integer = 6
+	Private Settings As Settings
+	Private ReadOnly Property Inputs As Integer = 10
 	Private ReadOnly Property Outputs As Integer = 4
-	Private ReadOnly Property LayerQTY As Integer = 2
-	Private ReadOnly Property NeuronQTY As Integer = 6
+	Private ReadOnly Property LayerQTY As Integer
+	Private ReadOnly Property NeuronQTY As Integer
 	Public Property Neurons As New List(Of Neuron)
 	Public Property Synapses As New List(Of Synapse)
 	Public Property Fitness As New List(Of Double)
-	Public Sub New()
+	Public Sub New(Setting As Settings)
+		Settings = Setting
+		LayerQTY = Settings.LayerQTY
+		NeuronQTY = Settings.NeuronQTY
 		For i = 1 To totalNerons
-			If i <= Inputs Then
-				Neurons.Add(New Neuron)
-			Else
-				Neurons.Add(New Neuron With {.Bias = RNG(-10, 10)})
-			End If
+			Neurons.Add(New Neuron With {.Bias = RNG(Settings.RNGBounds * -1, Settings.RNGBounds)})
 		Next
 		For i = 1 To totalSynapses
-			Synapses.Add(New Synapse With {.Weight = RNG(-5, 5)})
+			Synapses.Add(New Synapse With {.Weight = RNG(Settings.RNGBounds * -1, Settings.RNGBounds)})
 		Next
 	End Sub
 	Private ReadOnly Property totalNerons As Integer
 		Get
-			Return Inputs + (LayerQTY * NeuronQTY) + Outputs
+			Return (LayerQTY * NeuronQTY) + Outputs
 		End Get
 	End Property
 	Private ReadOnly Property totalSynapses As Integer
 		Get
-			Return CInt((Inputs * NeuronQTY) + (NeuronQTY ^ (LayerQTY - 1)) + (Outputs * NeuronQTY))
+			Return CInt((Inputs * NeuronQTY) + (NeuronQTY ^ (LayerQTY)) + (Outputs * NeuronQTY))
 		End Get
 	End Property
 	Private ReadOnly Property Layers As List(Of Layer)
@@ -48,15 +48,8 @@ Public Class Network
 			Dim List As New List(Of Layer)
 			Dim NeuronIndex As Integer = 0
 
-			'Populate input layer
-			Dim Layer As New Layer
-			For j = 1 To Inputs
-				Layer.Neurons.Add(Neurons.Item(NeuronIndex))
-				NeuronIndex += 1
-			Next
-			List.Add(Layer)
-
 			'Populate hidden layers
+			Dim Layer As New Layer
 			For i = 1 To LayerQTY
 				Layer = New Layer
 				For j = 1 To NeuronQTY
@@ -92,17 +85,21 @@ Public Class Network
 		For i = 0 To Inputs - 1
 			Neurons.Item(i).Value = InputValues.Item(i)
 		Next
-		'For Each Neuron In Layers.Item(0).Neurons
-		'	Neuron.Value = Sigmoid(Neuron.Value)
-		'Next
-		For i = 1 To Layers.Count - 1 'For each layer after the input layer
+		Dim SynapseIndex As Integer = 0
+		For i = 0 To Layers.Count - 1 'For each layer
 			For j = 0 To Layers.Item(i).Neurons.Count - 1 'For each neuron in the layer
 				Dim Neuron As Neuron = Layers.Item(i).Neurons.Item(j)
-				Dim SynapseIndex As Integer = 0
-				For k = 0 To Layers.Item(i - 1).Neurons.Count - 1 'For each synapse connected to the neuron
-					Neuron.Value += Neurons.Item(k).Value * Synapses.Item(SynapseIndex).Weight
-					SynapseIndex += 1
-				Next
+				If i = 0 Then
+					For k = 0 To Inputs - 1 'For each synapse connected to inputs
+						Neuron.Value += InputValues(k) * Synapses.Item(SynapseIndex).Weight
+						SynapseIndex += 1
+					Next
+				Else
+					For k = 0 To Layers.Item(i - 1).Neurons.Count - 1 'For each synapse connected to the neuron
+						Neuron.Value += Neurons.Item(k).Value * Synapses.Item(SynapseIndex).Weight
+						SynapseIndex += 1
+					Next
+				End If
 				Neuron.Value += Neuron.Bias
 				Neuron.Value = Sigmoid(Neuron.Value)
 			Next
