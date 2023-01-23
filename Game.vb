@@ -5,7 +5,6 @@ Imports System.Collections.Generic
 Imports System.Drawing
 
 Public Class Game
-    Private Shared Property Settings As Settings
     Private Property Network As Network
     Public Property Snake As Snake
     Public Property Fruit As Fruit
@@ -13,8 +12,7 @@ Public Class Game
     Public Property Timer As Integer
     Public Property Clock As Integer
     Public Property Speed As Integer
-    Public Sub New(Setting As Settings, NN As Network)
-        Settings = Setting
+    Public Sub New(NN As Network)
         Network = NN
 
         Score = 0

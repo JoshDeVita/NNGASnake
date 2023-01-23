@@ -3,18 +3,72 @@ Option Strict On
 Imports System.Collections.Generic
 Public Class Population
 	Public Property Networks As New List(Of Network)
-	Private Settings As Settings
-	Public Sub New(Setting As Settings)
-		Settings = Setting
+	Public Sub New(Fresh As Boolean, Optional LastGen As Population = Nothing)
+		If Fresh Then
+			Initialize()
+		End If
+
+		If LastGen IsNot Nothing Then
+			CreateNewGeneration(LastGen)
+		End If
+
+	End Sub
+	Public Sub Initialize()
 		For i = 1 To Settings.PopulationSize
-			Networks.Add(New Network(Settings))
+			Dim Network As New Network
+			Network.Initialize()
+			Networks.Add(Network)
+		Next
+	End Sub
+	Public Sub CreateNewGeneration(LastGen As Population)
+		LastGen.Sort()
+		Dim Parents As New List(Of Network)
+
+		'Select top percentage
+		Dim TopQTY As Integer = CInt(Settings.FitCrossover * Settings.PopulationSize)
+		For i = 0 To TopQTY - 1
+			Parents.Add(LastGen.Networks.Item(i))
 		Next
 
-		SavePopulation(Me, 1)
+		'Select random percentage
+		Dim RandomQTY As Integer = CInt(Settings.RandomCrossover * Settings.PopulationSize)
+		Dim RandomList As New List(Of Integer)
+		Dim RandomTest As Integer
+		For i = 0 To RandomQTY - 1
+			Do
+				RandomTest = RNGInt(TopQTY, Settings.PopulationSize - 1)
+			Loop Until Not RandomList.Contains(RandomTest) 'Ensure that the same network is not selected twice
+			Parents.Add(LastGen.Networks.Item(RandomTest))
+		Next
+
+		'Move best directly over
+		For i = 0 To CInt(Settings.FitProceed * Settings.PopulationSize) - 1
+			Networks.Add(LastGen.Networks.Item(i))
+		Next
+
+		'Randomly crossover
+		Do Until Networks.Count = Settings.PopulationSize
+			Dim Parent1 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
+			Dim Parent2 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
+			If Parent1 Is Parent2 Then
+				Continue Do
+			End If
+			Networks.Add(Parent1.Crossover(Parent2))
+		Loop
+
+		'Randomly mutate
+		For Each Network In Networks
+			If RNG(0, 1) < Settings.MutatePercent Then
+				Network.Mutate()
+			End If
+		Next
+	End Sub
+	Public Sub Sort()
+		Networks.Sort(Function(x, y) x.AverageFitness.CompareTo(y.AverageFitness))
+		Networks.Reverse()
 	End Sub
 End Class
 Public Class Network
-	Private Settings As Settings
 	Private ReadOnly Property Inputs As Integer = 10
 	Private ReadOnly Property Outputs As Integer = 4
 	Private ReadOnly Property LayerQTY As Integer
@@ -22,16 +76,9 @@ Public Class Network
 	Public Property Neurons As New List(Of Neuron)
 	Public Property Synapses As New List(Of Synapse)
 	Public Property Fitness As New List(Of Double)
-	Public Sub New(Setting As Settings)
-		Settings = Setting
+	Public Sub New()
 		LayerQTY = Settings.LayerQTY
 		NeuronQTY = Settings.NeuronQTY
-		For i = 1 To totalNerons
-			Neurons.Add(New Neuron With {.Bias = RNG(Settings.RNGBounds * -1, Settings.RNGBounds)})
-		Next
-		For i = 1 To totalSynapses
-			Synapses.Add(New Synapse With {.Weight = RNG(Settings.RNGBounds * -1, Settings.RNGBounds)})
-		Next
 	End Sub
 	Private ReadOnly Property totalNerons As Integer
 		Get
@@ -81,6 +128,45 @@ Public Class Network
 		End Get
 	End Property
 
+	Public Sub Initialize()
+		For i = 1 To totalNerons
+			Neurons.Add(New Neuron With {.Bias = RNG(Settings.RNGBounds * -1, Settings.RNGBounds)})
+		Next
+		For i = 1 To totalSynapses
+			Synapses.Add(New Synapse With {.Weight = RNG(Settings.RNGBounds * -1, Settings.RNGBounds)})
+		Next
+	End Sub
+
+	Public Function Crossover(Spouse As Network) As Network
+		Dim Child As New Network()
+		For Each Neuron In Neurons
+			If RNGInt(0, 1) = 0 Then
+				Child.Neurons.Add(Neuron)
+			Else
+				Child.Neurons.Add(Spouse.Neurons.Item(Neurons.IndexOf(Neuron)))
+			End If
+		Next
+		For Each Synapse In Synapses
+			If RNGInt(0, 1) = 0 Then
+				Child.Synapses.Add(Synapse)
+			Else
+				Child.Synapses.Add(Spouse.Synapses.Item(Synapses.IndexOf(Synapse)))
+			End If
+		Next
+		Return Child
+	End Function
+	Public Sub Mutate()
+		For Each Neuron In Neurons
+			If RNG(0, 1) < Settings.GeneMutatePercent Then
+				Neuron.Bias = RNG(Settings.RNGBounds * -1, Settings.RNGBounds)
+			End If
+		Next
+		For Each Synapse In Synapses
+			If RNG(0, 1) < Settings.GeneMutatePercent Then
+				Synapse.Weight = RNG(Settings.RNGBounds * -1, Settings.RNGBounds)
+			End If
+		Next
+	End Sub
 	Public Function Calculate(InputValues As List(Of Integer)) As Integer
 		For i = 0 To Inputs - 1
 			Neurons.Item(i).Value = InputValues.Item(i)

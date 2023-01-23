@@ -8,11 +8,9 @@ Imports System.Collections.Generic
 Public Class Display
     Private Property Window As RenderWindow
     Private Property Grid As List(Of RectangleShape)
-    Private Property Settings As Settings
-    Public Sub New(Setting As Settings)
-        Settings = Setting
+    Public Sub New()
         If Settings.Visible Then
-            Initialize()
+            initialize()
         End If
     End Sub
     Private Sub initialize()

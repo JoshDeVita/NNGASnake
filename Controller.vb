@@ -4,27 +4,59 @@ Imports System.Collections.Generic
 Imports System.Text.Json
 Imports Microsoft.VisualBasic.Devices
 
+Public Module GlobalVariables
+	Public Settings As New Setting
+End Module
+
 Public Module Application
-	Public Settings As Settings
 	Public Display As Display
 	Public Random As Random
 	Public Game As Game
 	Public Sub Main()
 		Random = New Random
-		Settings = New Settings
-		Display = New Display(Settings)
-		Dim Population As New Population(Settings)
-		For Each Network In Population.Networks
-			For i = 1 To Settings.Tests
-				Game = New Game(Settings, Network)
+		Display = New Display
+		Dim Population As Population
+		Dim File As String = Nothing
+		If Settings.Visible Then
+			File = TestPopulation()
+		End If
+		If Settings.Visible AndAlso File <> "" Then 'Run a specific network for display
+			Population = LoadPopulation(File)
+			For i = 1 To Settings.PlayTop
+				Game = New Game(Population.Networks.Item(i - 1))
 				UpdateUI()
 				Game.Run()
 			Next
-		Next
-		SavePopulation(Population, 1)
+		Else 'Run normally
+			Population = New Population(True)
+			Dim LastGen As Population = Nothing
+			For i = 1 To Settings.Generations
+				If LastGen IsNot Nothing Then
+					Population = New Population(False, LastGen)
+				End If
+				For Each Network In Population.Networks
+					For j = 1 To Settings.Tests
+						Game = New Game(Network)
+						UpdateUI()
+						Game.Run()
+					Next
+					LastGen = Population
+				Next
+				SavePopulation(Population, i)
+			Next
+		End If
 	End Sub
+	Public Function TestPopulation() As String
+		Dim FileDialog As New Windows.Forms.OpenFileDialog
+		FileDialog.InitialDirectory = Settings.FolderPath
+		FileDialog.ShowDialog()
+		Return FileDialog.FileName
+	End Function
 	Public Function RNG(LowerBound As Double, UpperBound As Double) As Double
 		Return Random.NextDouble * (UpperBound - LowerBound) + LowerBound
+	End Function
+	Public Function RNGInt(LowerBound As Integer, UpperBound As Integer) As Integer
+		Return Random.Next(LowerBound, UpperBound)
 	End Function
 	Public Function SerializeNetwork(Network As Network) As String
 		Return JsonSerializer.Serialize(Network)
@@ -38,13 +70,22 @@ Public Module Application
 		swLog.Close()
 	End Sub
 	Public Sub SavePopulation(Population As Population, Generation As Integer)
-		Dim swLog As New IO.StreamWriter(Settings.FolderPath & "Generation " & Generation & ".txt", False)
+		Population.Sort()
+		Dim swLog As New IO.StreamWriter(Settings.FolderPath & "Gen " & Generation & ".txt", False)
 		swLog.Close()
 
 		For Each Network In Population.Networks
-			SaveNetwork(Settings.FolderPath & "Generation " & Generation & ".txt", Network)
+			SaveNetwork(Settings.FolderPath & "Gen " & Generation & ".txt", Network)
 		Next
 	End Sub
+	Public Function LoadPopulation(File As String) As Population
+		Dim srLog As New IO.StreamReader(File)
+		Dim Pop As New Population(False)
+		Do Until srLog.EndOfStream
+			Pop.Networks.Add(DeserializeNetwork(srLog.ReadLine))
+		Loop
+		Return Pop
+	End Function
 	Public Sub UpdateUI() 'Draw and update the UI for every frame
 		If Settings.Visible = False Then Exit Sub
 		Display.Clear()
@@ -61,18 +102,29 @@ Public Module Application
 		Display.Update()
 	End Sub
 End Module
-Public Class Settings
+Public Class Setting
+	Public Property FolderPath As String = "C:\Code\Networks\"
 	Public Property Visible As Boolean = True
+	Public Property PlayTop As Integer = 10
+
 	Public Property WindowSize As UInteger = 1200
 	Public Property Buffer As Integer = 10
 	Public Property GridSquares As Integer = 30
-	Public Property FrameRate As Integer = 30
-	Public Property FolderPath As String = "C:\Code\Networks\"
-	Public Property PopulationSize As Integer = 100
+	Public Property FrameRate As Integer = 60
+
+	Public Property PopulationSize As Integer = 1000
 	Public Property TimerLimit As Integer = 10000
 	Public Property TimerBump As Integer = 100
-	Public Property Tests As Integer = 1
+
 	Public Property RNGBounds As Integer = 10
 	Public Property LayerQTY As Integer = 2
 	Public Property NeuronQTY As Integer = 6
+
+	Public Property Generations As Integer = 100
+	Public Property Tests As Integer = 5
+	Public Property FitCrossover As Double = 0.15
+	Public Property RandomCrossover As Double = 0.05
+	Public Property FitProceed As Double = 0.05
+	Public Property MutatePercent As Double = 0.01
+	Public Property GeneMutatePercent As Double = 0.1
 End Class
