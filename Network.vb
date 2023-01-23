@@ -171,9 +171,9 @@ Public Class Network
 		Next
 	End Sub
 	Public Function Calculate(InputValues As List(Of Integer)) As Integer
-		For i = 0 To Inputs - 1
-			Neurons.Item(i).Value = InputValues.Item(i)
-		Next
+		'For i = 0 To Inputs - 1
+		'	Neurons.Item(i).Value = InputValues.Item(i)
+		'Next
 		Dim SynapseIndex As Integer = 0
 		For i = 0 To Layers.Count - 1 'For each layer
 			For j = 0 To Layers.Item(i).Neurons.Count - 1 'For each neuron in the layer

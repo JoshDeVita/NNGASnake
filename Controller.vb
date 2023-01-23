@@ -104,7 +104,7 @@ Public Module Application
 End Module
 Public Class Setting
 	Public Property FolderPath As String = "C:\Code\Networks\"
-	Public Property Visible As Boolean = True
+	Public Property Visible As Boolean = False
 	Public Property PlayTop As Integer = 10
 
 	Public Property WindowSize As UInteger = 1200
@@ -120,10 +120,10 @@ Public Class Setting
 	Public Property LayerQTY As Integer = 2
 	Public Property NeuronQTY As Integer = 6
 
-	Public Property Generations As Integer = 1000
-	Public Property Tests As Integer = 5
-	Public Property FitCrossover As Double = 0.1
-	Public Property RandomCrossover As Double = 0.02
-	Public Property MutatePercent As Double = 0.02
-	Public Property GeneMutatePercent As Double = 0.05
+	Public Property Generations As Integer = 10
+	Public Property Tests As Integer = 20
+	Public Property FitCrossover As Double = 0.15
+	Public Property RandomCrossover As Double = 0.03
+	Public Property MutatePercent As Double = 0.05
+	Public Property GeneMutatePercent As Double = 0.1
 End Class
