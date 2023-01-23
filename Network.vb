@@ -41,11 +41,6 @@ Public Class Population
 			Parents.Add(LastGen.Networks.Item(RandomTest))
 		Next
 
-		'Move best directly over
-		For i = 0 To CInt(Settings.FitProceed * Settings.PopulationSize) - 1
-			Networks.Add(LastGen.Networks.Item(i))
-		Next
-
 		'Randomly crossover
 		Do Until Networks.Count = Settings.PopulationSize
 			Dim Parent1 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
@@ -53,7 +48,9 @@ Public Class Population
 			If Parent1 Is Parent2 Then
 				Continue Do
 			End If
-			Networks.Add(Parent1.Crossover(Parent2))
+			Dim Children As List(Of Network) = Parent1.Crossover(Parent2)
+			Networks.Add(Children.Item(0))
+			Networks.Add(Children.Item(1))
 		Loop
 
 		'Randomly mutate
@@ -137,23 +134,29 @@ Public Class Network
 		Next
 	End Sub
 
-	Public Function Crossover(Spouse As Network) As Network
-		Dim Child As New Network()
+	Public Function Crossover(Spouse As Network) As List(Of Network)
+		Dim Child1 As New Network()
+		Dim Child2 As New Network()
 		For Each Neuron In Neurons
 			If RNGInt(0, 1) = 0 Then
-				Child.Neurons.Add(Neuron)
+				Child1.Neurons.Add(Neuron)
+				Child2.Neurons.Add(Spouse.Neurons.Item(Neurons.IndexOf(Neuron)))
 			Else
-				Child.Neurons.Add(Spouse.Neurons.Item(Neurons.IndexOf(Neuron)))
+				Child1.Neurons.Add(Spouse.Neurons.Item(Neurons.IndexOf(Neuron)))
+				Child2.Neurons.Add(Neuron)
 			End If
 		Next
 		For Each Synapse In Synapses
 			If RNGInt(0, 1) = 0 Then
-				Child.Synapses.Add(Synapse)
+				Child1.Synapses.Add(Synapse)
+				Child2.Synapses.Add(Spouse.Synapses.Item(Synapses.IndexOf(Synapse)))
 			Else
-				Child.Synapses.Add(Spouse.Synapses.Item(Synapses.IndexOf(Synapse)))
+				Child1.Synapses.Add(Spouse.Synapses.Item(Synapses.IndexOf(Synapse)))
+				Child2.Synapses.Add(Synapse)
 			End If
 		Next
-		Return Child
+		Dim List As New List(Of Network) From {Child1, Child2}
+		Return List
 	End Function
 	Public Sub Mutate()
 		For Each Neuron In Neurons
