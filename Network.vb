@@ -41,8 +41,15 @@ Public Class Population
 			Parents.Add(LastGen.Networks.Item(RandomTest))
 		Next
 
-		'Randomly crossover
-		Do Until Networks.Count = Settings.PopulationSize
+		''Randomly mutate parents
+		'For Each Network In Parents
+		'	If RNG(0, 1) < Settings.MutatePercent Then
+		'		Network.Mutate()
+		'	End If
+		'Next
+
+		'Randomly crossover until threshold is met
+		Do Until Networks.Count = Settings.CrossoverPercent * Settings.PopulationSize
 			Dim Parent1 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
 			Dim Parent2 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
 			If Parent1 Is Parent2 Then
@@ -53,7 +60,14 @@ Public Class Population
 			Networks.Add(Children.Item(1))
 		Loop
 
-		'Randomly mutate
+		'Add new networks until population size is met
+		Do Until Networks.Count = Settings.PopulationSize
+			Dim Network As New Network
+			Network.Initialize()
+			Networks.Add(Network)
+		Loop
+
+		'Randomly mutate children
 		For Each Network In Networks
 			If RNG(0, 1) < Settings.MutatePercent Then
 				Network.Mutate()
@@ -171,16 +185,15 @@ Public Class Network
 		Next
 	End Sub
 	Public Function Calculate(InputValues As List(Of Integer)) As Integer
-		'For i = 0 To Inputs - 1
-		'	Neurons.Item(i).Value = InputValues.Item(i)
-		'Next
 		Dim SynapseIndex As Integer = 0
 		For i = 0 To Layers.Count - 1 'For each layer
 			For j = 0 To Layers.Item(i).Neurons.Count - 1 'For each neuron in the layer
 				Dim Neuron As Neuron = Layers.Item(i).Neurons.Item(j)
 				If i = 0 Then
 					For k = 0 To Inputs - 1 'For each synapse connected to inputs
-						Neuron.Value += InputValues(k) * Synapses.Item(SynapseIndex).Weight
+						'Dim Input As Double = Sigmoid(InputValues(k))
+						Dim Input As Double = InputValues(k)
+						Neuron.Value += Input * Synapses.Item(SynapseIndex).Weight
 						SynapseIndex += 1
 					Next
 				Else

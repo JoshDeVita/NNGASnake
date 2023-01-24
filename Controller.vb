@@ -105,25 +105,26 @@ End Module
 Public Class Setting
 	Public Property FolderPath As String = "C:\Code\Networks\"
 	Public Property Visible As Boolean = False
-	Public Property PlayTop As Integer = 10
+	Public Property PlayTop As Integer = 20
 
 	Public Property WindowSize As UInteger = 1200
 	Public Property Buffer As Integer = 10
 	Public Property GridSquares As Integer = 30
 	Public Property FrameRate As Integer = 30
 
-	Public Property PopulationSize As Integer = 1000
-	Public Property TimerLimit As Integer = 10000
+	Public Property TimerLimit As Integer = 5000
 	Public Property TimerBump As Integer = 100
 
-	Public Property RNGBounds As Integer = 10
+	Public Property RNGBounds As Integer = 5
 	Public Property LayerQTY As Integer = 2
 	Public Property NeuronQTY As Integer = 6
 
-	Public Property Generations As Integer = 10
-	Public Property Tests As Integer = 20
-	Public Property FitCrossover As Double = 0.15
-	Public Property RandomCrossover As Double = 0.03
+	Public Property PopulationSize As Integer = 1000
+	Public Property Generations As Integer = 100
+	Public Property Tests As Integer = 10
+	Public Property FitCrossover As Double = 0.2
+	Public Property RandomCrossover As Double = 0.05
+	Public Property CrossoverPercent As Double = 0.5
 	Public Property MutatePercent As Double = 0.05
 	Public Property GeneMutatePercent As Double = 0.1
 End Class
