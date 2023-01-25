@@ -24,41 +24,56 @@ Public Class Population
 		LastGen.Sort()
 		Dim Parents As New List(Of Network)
 
-		'Select top percentage
-		Dim TopQTY As Integer = CInt(Settings.FitCrossover * Settings.PopulationSize)
-		For i = 0 To TopQTY - 1
-			Parents.Add(LastGen.Networks.Item(i))
-		Next
+		'Drop bad networks
+		If Settings.DropZeros Then
+			LastGen.Networks.RemoveAll(Function(x) x.AverageFitness = 0)
+		End If
 
-		'Select random percentage
-		Dim RandomQTY As Integer = CInt(Settings.RandomCrossover * Settings.PopulationSize)
-		Dim RandomList As New List(Of Integer)
-		Dim RandomTest As Integer
-		For i = 0 To RandomQTY - 1
-			Do
-				RandomTest = RNGInt(TopQTY, Settings.PopulationSize - 1)
-			Loop Until Not RandomList.Contains(RandomTest) 'Ensure that the same network is not selected twice
-			Parents.Add(LastGen.Networks.Item(RandomTest))
-		Next
-
-		''Randomly mutate parents
-		'For Each Network In Parents
-		'	If RNG(0, 1) < Settings.MutatePercent Then
-		'		Network.Mutate()
-		'	End If
-		'Next
-
-		'Randomly crossover until threshold is met
-		Do Until Networks.Count = Settings.CrossoverPercent * Settings.PopulationSize
-			Dim Parent1 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
-			Dim Parent2 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
-			If Parent1 Is Parent2 Then
-				Continue Do
+		If Settings.Crossover Then
+			'Select top percentage
+			Dim TopQTY As Integer
+			Dim NoRandom As Boolean = False
+			If CInt(Settings.FitCrossover * Settings.PopulationSize) < LastGen.Networks.Count Then 'Check if the top percentage is less than the population size
+				TopQTY = CInt(Settings.FitCrossover * Settings.PopulationSize)
+			Else
+				TopQTY = LastGen.Networks.Count
+				NoRandom = True
 			End If
-			Dim Children As List(Of Network) = Parent1.Crossover(Parent2)
-			Networks.Add(Children.Item(0))
-			Networks.Add(Children.Item(1))
-		Loop
+			For i = 0 To TopQTY - 1
+				Parents.Add(LastGen.Networks.Item(i))
+			Next
+
+			'Select random percentage
+			If NoRandom = False Then
+				Dim RandomQTY As Integer
+				Dim RandomList As New List(Of Integer)
+				Dim RandomTest As Integer
+				If TopQTY + CInt(Settings.RandomCrossover * Settings.PopulationSize) < LastGen.Networks.Count Then 'Check if the random percentage is less than the remaining population size
+					RandomQTY = LastGen.Networks.Count - TopQTY
+				Else
+					RandomQTY = CInt(Settings.RandomCrossover * Settings.PopulationSize)
+				End If
+
+				For i = 0 To RandomQTY - 1
+					Do
+						RandomTest = RNGInt(TopQTY, LastGen.Networks.Count - 1)
+					Loop Until Not RandomList.Contains(RandomTest) 'Ensure that the same network is not selected twice
+					Parents.Add(LastGen.Networks.Item(RandomTest))
+				Next
+			End If
+
+			'Randomly crossover until threshold is met
+			Do Until Networks.Count = Settings.CrossoverPercent * Settings.PopulationSize
+				Dim Parent1 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
+				Dim Parent2 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
+				If Parent1 Is Parent2 Then
+					Continue Do
+				End If
+				Dim Children As List(Of Network) = Parent1.Crossover(Parent2)
+				Networks.Add(Children.Item(0))
+				Networks.Add(Children.Item(1))
+			Loop
+		End If
 
 		'Add new networks until population size is met
 		Do Until Networks.Count = Settings.PopulationSize
@@ -67,12 +82,15 @@ Public Class Population
 			Networks.Add(Network)
 		Loop
 
-		'Randomly mutate children
-		For Each Network In Networks
-			If RNG(0, 1) < Settings.MutatePercent Then
-				Network.Mutate()
-			End If
-		Next
+		If Settings.Mutate Then
+			'Randomly mutate children
+			For Each Network In Networks
+				If RNG(0, 1) < Settings.MutatePercent Then
+					Network.Mutate()
+				End If
+			Next
+		End If
+
 	End Sub
 	Public Sub Sort()
 		Networks.Sort(Function(x, y) x.AverageFitness.CompareTo(y.AverageFitness))
