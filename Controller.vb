@@ -116,19 +116,23 @@ Public Class Setting
 	Public Property TimerBump As Integer = 100
 
 	Public Property RNGBounds As Integer = 10
-	Public Property LayerQTY As Integer = 2
-	Public Property NeuronQTY As Integer = 6
+	Public Property LayerQTY As Integer = 3
+	Public Property NeuronQTY As Integer = 4
 
 	Public Property Mutate As Boolean = True
-	Public Property Crossover As Boolean = True
-	Public Property DropZeros As Boolean = True
+	Public Property MutatePercent As Double = 0.02
+	Public Property GeneMutatePercent As Double = 0.05
 
-	Public Property PopulationSize As Integer = 1000
-	Public Property Generations As Integer = 10
-	Public Property Tests As Integer = 10
+	Public Property Crossover As Boolean = True
+	Public Property CrossoverType As String = "Point" 'Uniform, Point
 	Public Property FitCrossover As Double = 0.35
 	Public Property RandomCrossover As Double = 0.05
 	Public Property CrossoverPercent As Double = 0.5
-	Public Property MutatePercent As Double = 0.03
-	Public Property GeneMutatePercent As Double = 0.05
+
+	Public Property DropZeros As Boolean = True
+	Public Property PopulationSize As Integer = 1000
+	Public Property Generations As Integer = 100
+	Public Property Tests As Integer = 10
+
+
 End Class

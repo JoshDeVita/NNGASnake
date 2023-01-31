@@ -17,7 +17,7 @@ Public Class Game
 
         Score = 0
         Timer = 500
-        Clock = 0
+        Clock = 1
 
         Snake = New Snake()
         Fruit = New Fruit()
@@ -54,6 +54,7 @@ Public Class Game
             '                    "Score: " & Score & vbCrLf &
             '                    "Timer: " & Timer & vbCrLf &
             '                    "Clock: " & Clock)))
+            Clock += 1
             If SnakeInFood() Then
                 Score += 1
                 Speed = Clock
@@ -64,7 +65,6 @@ Public Class Game
                     Fruit = New Fruit()
                 Loop
             End If
-            Clock += 1
             Timer -= 1
             If Timer > Settings.TimerLimit Then
                 Timer = Settings.TimerLimit

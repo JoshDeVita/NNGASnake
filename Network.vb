@@ -22,76 +22,110 @@ Public Class Population
 	End Sub
 	Public Sub CreateNewGeneration(LastGen As Population)
 		LastGen.Sort()
-		Dim Parents As New List(Of Network)
 
 		'Drop bad networks
 		If Settings.DropZeros Then
-			LastGen.Networks.RemoveAll(Function(x) x.AverageFitness = 0)
+			dropZeros(LastGen)
 		End If
 
 		If Settings.Crossover Then
-			'Select top percentage
-			Dim TopQTY As Integer
-			Dim NoRandom As Boolean = False
-			If CInt(Settings.FitCrossover * Settings.PopulationSize) < LastGen.Networks.Count Then 'Check if the top percentage is less than the population size
-				TopQTY = CInt(Settings.FitCrossover * Settings.PopulationSize)
-			Else
-				TopQTY = LastGen.Networks.Count
-				NoRandom = True
-			End If
-			For i = 0 To TopQTY - 1
-				Parents.Add(LastGen.Networks.Item(i))
-			Next
-
-			'Select random percentage
-			If NoRandom = False Then
-				Dim RandomQTY As Integer
-				Dim RandomList As New List(Of Integer)
-				Dim RandomTest As Integer
-				If TopQTY + CInt(Settings.RandomCrossover * Settings.PopulationSize) < LastGen.Networks.Count Then 'Check if the random percentage is less than the remaining population size
-					RandomQTY = LastGen.Networks.Count - TopQTY
-				Else
-					RandomQTY = CInt(Settings.RandomCrossover * Settings.PopulationSize)
-				End If
-
-				For i = 0 To RandomQTY - 1
-					Do
-						RandomTest = RNGInt(TopQTY, LastGen.Networks.Count - 1)
-					Loop Until Not RandomList.Contains(RandomTest) 'Ensure that the same network is not selected twice
-					Parents.Add(LastGen.Networks.Item(RandomTest))
-				Next
-			End If
-
-			'Randomly crossover until threshold is met
-			Do Until Networks.Count = Settings.CrossoverPercent * Settings.PopulationSize
-				Dim Parent1 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
-				Dim Parent2 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
-				If Parent1 Is Parent2 Then
-					Continue Do
-				End If
-				Dim Children As List(Of Network) = Parent1.Crossover(Parent2)
-				Networks.Add(Children.Item(0))
-				Networks.Add(Children.Item(1))
-			Loop
+			crossover(LastGen)
+		Else
+			bringOver(LastGen)
 		End If
 
+		fill()
+
+		If Settings.Mutate Then
+			mutate()
+		End If
+
+	End Sub
+	Private Sub bringOver(LastGen As Population)
+		For Each Network In LastGen.Networks
+			Networks.Add(New Network With {.Neurons = Network.Neurons, .Synapses = Network.Synapses})
+		Next
+	End Sub
+	Private Sub dropZeros(LastGen As Population)
+		LastGen.Networks.RemoveAll(Function(x) x.AverageFitness = 0)
+	End Sub
+	Private Sub mutate()
+		'Randomly mutate children
+		For Each Network In Networks
+			If RNG(0, 1) < Settings.MutatePercent Then
+				Network.Mutate()
+			End If
+		Next
+	End Sub
+	Private Sub fill()
 		'Add new networks until population size is met
 		Do Until Networks.Count = Settings.PopulationSize
 			Dim Network As New Network
 			Network.Initialize()
 			Networks.Add(Network)
 		Loop
+	End Sub
+	Private Sub crossover(LastGen As Population)
 
-		If Settings.Mutate Then
-			'Randomly mutate children
-			For Each Network In Networks
-				If RNG(0, 1) < Settings.MutatePercent Then
-					Network.Mutate()
-				End If
-			Next
-		End If
+		Dim Parents As List(Of Network) = selection(LastGen)
+
+
+
+		Do Until Networks.Count = Settings.CrossoverPercent * Settings.PopulationSize
+			Dim Parent1 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
+			Dim Parent2 As Network = Parents.Item(RNGInt(0, Parents.Count - 1))
+			If Parent1 Is Parent2 Then
+				Continue Do
+			End If
+
+			Select Case Settings.CrossoverType
+				Case "Uniform"
+					Dim Children As List(Of Network) = Parent1.UniformCrossover(Parent2)
+					Networks.Add(Children.Item(0))
+					Networks.Add(Children.Item(1))
+				Case "Point"
+					Dim Children As List(Of Network) = Parent1.PointCrossover(Parent2)
+					Networks.Add(Children.Item(0))
+					Networks.Add(Children.Item(1))
+			End Select
+		Loop
 
 	End Sub
+	Private Function selection(LastGen As Population) As List(Of Network)
+		Dim Parents As New List(Of Network)
+		'Select top percentage
+		Dim TopQTY As Integer
+		Dim NoRandom As Boolean = False
+		If CInt(Settings.FitCrossover * Settings.PopulationSize) < LastGen.Networks.Count Then 'Check if the top percentage is less than the population size
+			TopQTY = CInt(Settings.FitCrossover * Settings.PopulationSize)
+		Else
+			TopQTY = LastGen.Networks.Count
+			NoRandom = True
+		End If
+		For i = 0 To TopQTY - 1
+			Parents.Add(LastGen.Networks.Item(i))
+		Next
+
+		'Select random percentage
+		If NoRandom = False Then
+			Dim RandomQTY As Integer
+			Dim RandomList As New List(Of Integer)
+			Dim RandomTest As Integer
+			If TopQTY + CInt(Settings.RandomCrossover * Settings.PopulationSize) < LastGen.Networks.Count Then 'Check if the random percentage is less than the remaining population size
+				RandomQTY = LastGen.Networks.Count - TopQTY
+			Else
+				RandomQTY = CInt(Settings.RandomCrossover * Settings.PopulationSize)
+			End If
+
+			For i = 0 To RandomQTY - 1
+				Do
+					RandomTest = RNGInt(TopQTY, LastGen.Networks.Count - 1)
+				Loop Until Not RandomList.Contains(RandomTest) 'Ensure that the same network is not selected twice
+				Parents.Add(LastGen.Networks.Item(RandomTest))
+			Next
+		End If
+		Return Parents
+	End Function
 	Public Sub Sort()
 		Networks.Sort(Function(x, y) x.AverageFitness.CompareTo(y.AverageFitness))
 		Networks.Reverse()
@@ -109,14 +143,19 @@ Public Class Network
 		LayerQTY = Settings.LayerQTY
 		NeuronQTY = Settings.NeuronQTY
 	End Sub
-	Private ReadOnly Property totalNerons As Integer
+	Private ReadOnly Property TotalNerons As Integer
 		Get
 			Return (LayerQTY * NeuronQTY) + Outputs
 		End Get
 	End Property
-	Private ReadOnly Property totalSynapses As Integer
+	Private ReadOnly Property TotalSynapses As Integer
 		Get
 			Return CInt((Inputs * NeuronQTY) + (NeuronQTY ^ (LayerQTY)) + (Outputs * NeuronQTY))
+		End Get
+	End Property
+	Private ReadOnly Property TotalGenes As Integer
+		Get
+			Return TotalNerons + TotalSynapses
 		End Get
 	End Property
 	Private ReadOnly Property Layers As List(Of Layer)
@@ -166,7 +205,32 @@ Public Class Network
 		Next
 	End Sub
 
-	Public Function Crossover(Spouse As Network) As List(Of Network)
+	Public Function PointCrossover(Spouse As Network) As List(Of Network)
+		Dim Child1 As New Network()
+		Dim Child2 As New Network()
+		Dim Point As Integer = RNGInt(0, TotalGenes - 1)
+		For i = 0 To Point
+			If i < TotalNerons Then
+				Child1.Neurons.Add(Neurons.Item(i))
+				Child2.Neurons.Add(Spouse.Neurons.Item(i))
+			Else
+				Child1.Synapses.Add(Synapses.Item(i - TotalNerons))
+				Child2.Synapses.Add(Spouse.Synapses.Item(i - TotalNerons))
+			End If
+		Next
+		For i = Point + 1 To TotalGenes - 1
+			If i < TotalNerons Then
+				Child1.Neurons.Add(Spouse.Neurons.Item(i))
+				Child2.Neurons.Add(Neurons.Item(i))
+			Else
+				Child1.Synapses.Add(Spouse.Synapses.Item(i - TotalNerons))
+				Child2.Synapses.Add(Synapses.Item(i - TotalNerons))
+			End If
+		Next
+		Dim List As New List(Of Network) From {Child1, Child2}
+		Return List
+	End Function
+	Public Function UniformCrossover(Spouse As Network) As List(Of Network)
 		Dim Child1 As New Network()
 		Dim Child2 As New Network()
 		For Each Neuron In Neurons
