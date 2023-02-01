@@ -81,9 +81,9 @@ Public Module Application
 	Public Function LoadPopulation(File As String) As Population
 		Dim srLog As New IO.StreamReader(File)
 		Dim Pop As New Population(False)
-		Do Until srLog.EndOfStream
+		For i = 1 To Settings.PlayTop
 			Pop.Networks.Add(DeserializeNetwork(srLog.ReadLine))
-		Loop
+		Next
 		Return Pop
 	End Function
 	Public Sub UpdateUI() 'Draw and update the UI for every frame
@@ -104,34 +104,34 @@ Public Module Application
 End Module
 Public Class Setting
 	Public Property FolderPath As String = "C:\Code\Networks\"
-	Public Property Visible As Boolean = False
-	Public Property PlayTop As Integer = 20
+	Public Property Visible As Boolean = True
+	Public Property PlayTop As Integer = 10
 
 	Public Property WindowSize As UInteger = 1200
 	Public Property Buffer As Integer = 10
 	Public Property GridSquares As Integer = 30
-	Public Property FrameRate As Integer = 30
+	Public Property FrameRate As Integer = 15
 
 	Public Property TimerLimit As Integer = 5000
 	Public Property TimerBump As Integer = 100
 
-	Public Property RNGBounds As Integer = 10
-	Public Property LayerQTY As Integer = 3
-	Public Property NeuronQTY As Integer = 4
+	Public Property RNGBounds As Integer = 5
+	Public Property LayerQTY As Integer = 2
+	Public Property NeuronQTY As Integer = 6
 
 	Public Property Mutate As Boolean = True
 	Public Property MutatePercent As Double = 0.02
-	Public Property GeneMutatePercent As Double = 0.05
+	Public Property GeneMutatePercent As Double = 0.03
 
 	Public Property Crossover As Boolean = True
 	Public Property CrossoverType As String = "Point" 'Uniform, Point
-	Public Property FitCrossover As Double = 0.35
+	Public Property FitCrossover As Double = 0.25
 	Public Property RandomCrossover As Double = 0.05
 	Public Property CrossoverPercent As Double = 0.5
 
 	Public Property DropZeros As Boolean = True
-	Public Property PopulationSize As Integer = 1000
-	Public Property Generations As Integer = 100
+	Public Property PopulationSize As Integer = 100000
+	Public Property Generations As Integer = 10
 	Public Property Tests As Integer = 10
 
 

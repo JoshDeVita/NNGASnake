@@ -273,8 +273,7 @@ Public Class Network
 				Dim Neuron As Neuron = Layers.Item(i).Neurons.Item(j)
 				If i = 0 Then
 					For k = 0 To Inputs - 1 'For each synapse connected to inputs
-						'Dim Input As Double = Sigmoid(InputValues(k))
-						Dim Input As Double = InputValues(k)
+						Dim Input As Double = Sigmoid(InputValues(k))
 						Neuron.Value += Input * Synapses.Item(SynapseIndex).Weight
 						SynapseIndex += 1
 					Next
