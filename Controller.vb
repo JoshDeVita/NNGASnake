@@ -104,7 +104,7 @@ Public Module Application
 End Module
 Public Class Setting
 	Public Property FolderPath As String = "C:\Code\Networks\"
-	Public Property Visible As Boolean = True
+	Public Property Visible As Boolean = False
 	Public Property PlayTop As Integer = 10
 
 	Public Property WindowSize As UInteger = 1200
@@ -125,13 +125,13 @@ Public Class Setting
 
 	Public Property Crossover As Boolean = True
 	Public Property CrossoverType As String = "Point" 'Uniform, Point
-	Public Property FitCrossover As Double = 0.25
+	Public Property FitCrossover As Double = 0.2
 	Public Property RandomCrossover As Double = 0.05
-	Public Property CrossoverPercent As Double = 0.5
+	Public Property CrossoverPercent As Double = 0.75
 
 	Public Property DropZeros As Boolean = True
 	Public Property PopulationSize As Integer = 100000
-	Public Property Generations As Integer = 10
+	Public Property Generations As Integer = 100
 	Public Property Tests As Integer = 10
 
 
