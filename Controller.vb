@@ -2,9 +2,11 @@
 Option Explicit On
 Imports System.Collections.Generic
 Imports System.Text.Json
+Imports System.Text.Json.Serialization
 Imports Microsoft.VisualBasic.Devices
 
 Public Module GlobalVariables
+	Public FSO As New Scripting.FileSystemObject
 	Public Settings As New Setting
 End Module
 
@@ -14,6 +16,8 @@ Public Module Application
 	Public Game As Game
 	Public Sub Main()
 		Random = New Random
+		If Not FSO.FolderExists(Settings.FolderPath) Then MsgBox("This folder must exist to continue: " & Settings.FolderPath) : End
+		Settings = Setting.Deserialize(Settings.FolderPath)
 		Display = New Display
 		Dim Population As Population
 		Dim File As String = Nothing
@@ -47,8 +51,9 @@ Public Module Application
 		End If
 	End Sub
 	Public Function TestPopulation() As String
-		Dim FileDialog As New Windows.Forms.OpenFileDialog
-		FileDialog.InitialDirectory = Settings.FolderPath
+		Dim FileDialog As New Windows.Forms.OpenFileDialog With {
+			.InitialDirectory = Settings.FolderPath
+		}
 		FileDialog.ShowDialog()
 		Return FileDialog.FileName
 	End Function
@@ -102,8 +107,10 @@ Public Module Application
 		Display.Update()
 	End Sub
 End Module
-Public Class Setting
-	Public Property FolderPath As String = "C:\Code\Networks\"
+Public Class Setting 'Defaults exist just so that the changes stand out when serializing
+	<JsonIgnore>
+	Public Property FolderPath As String = "C:\Users\" & Environ("Username") & "\NN GA Snake\"
+
 	Public Property Visible As Boolean = False
 	Public Property PlayTop As Integer = 10
 
@@ -121,18 +128,30 @@ Public Class Setting
 
 	Public Property Mutate As Boolean = True
 	Public Property MutatePercent As Double = 0.02
-	Public Property GeneMutatePercent As Double = 0.03
+	Public Property GeneMutatePercent As Double = 0.05
 
 	Public Property Crossover As Boolean = True
 	Public Property CrossoverType As String = "Point" 'Uniform, Point
-	Public Property FitCrossover As Double = 0.2
-	Public Property RandomCrossover As Double = 0.05
-	Public Property CrossoverPercent As Double = 0.75
+	Public Property FitCrossover As Double = 0.05
+	Public Property RandomCrossover As Double = 0.005
+	Public Property CrossoverPercent As Double = 0.5
 
 	Public Property DropZeros As Boolean = True
-	Public Property PopulationSize As Integer = 100000
-	Public Property Generations As Integer = 100
+	Public Property PopulationSize As Integer = 10000
+	Public Property Generations As Integer = 10
 	Public Property Tests As Integer = 10
 
-
+	Public Sub Serialize()
+		Dim Data As String = JsonSerializer.Serialize(Me)
+		If Not FSO.FolderExists(FolderPath) Then
+			FSO.CreateFolder(FolderPath)
+		End If
+		Dim swLog As New IO.StreamWriter(FolderPath & "Settings.JSON", False)
+		swLog.WriteLine(Data)
+		swLog.Close()
+	End Sub
+	Public Shared Function Deserialize(Path As String) As Setting
+		Dim Data As String = IO.File.ReadAllText(Path & "Settings.JSON")
+		Return JsonSerializer.Deserialize(Of Setting)(Data)
+	End Function
 End Class
