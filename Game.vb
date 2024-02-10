@@ -11,7 +11,6 @@ Public Class Game
     Public Property Score As Integer
     Public Property Timer As Integer
     Public Property Clock As Integer
-    Public Property Speed As Integer
     Public Sub New(NN As Network)
         Network = NN
 
@@ -57,7 +56,6 @@ Public Class Game
             Clock += 1
             If SnakeInFood() Then
                 Score += 1
-                Speed = Clock
                 Timer += Settings.TimerBump
                 Snake.Grow()
                 Fruit = New Fruit()
@@ -205,8 +203,7 @@ Public Class Game
     End Property
     Public ReadOnly Property Fitness As Double
         Get
-            If Score = 0 Or Speed = 0 Then Return 0
-            Return Score + (1 / Speed)
+            Return Score * Clock
         End Get
     End Property
 End Class
