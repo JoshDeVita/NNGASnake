@@ -29,6 +29,7 @@ Public Class Population
 		End If
 
 		If Settings.Crossover Then
+			Elitism(LastGen)
 			crossover(LastGen)
 		Else
 			bringOver(LastGen)
@@ -40,6 +41,20 @@ Public Class Population
 			mutate()
 		End If
 
+		clearFitness()
+
+	End Sub
+	Private Sub clearFitness()
+		For Each Network In Networks
+			Network.Fitness.Clear()
+		Next
+	End Sub
+	Private Sub elitism(LastGen As Population)
+		Dim i As Integer = 0
+		Do Until Networks.Count = Settings.PopulationSize * Settings.ElitismPercent
+			Networks.Add(LastGen.Networks(i))
+			i += 1
+		Loop
 	End Sub
 	Private Sub bringOver(LastGen As Population)
 		For Each Network In LastGen.Networks
@@ -132,13 +147,13 @@ Public Class Population
 	End Sub
 End Class
 Public Class Network
+	Public Property Fitness As New List(Of Double)
 	Private ReadOnly Property Inputs As Integer = 10
 	Private ReadOnly Property Outputs As Integer = 4
 	Private ReadOnly Property LayerQTY As Integer
 	Private ReadOnly Property NeuronQTY As Integer
 	Public Property Neurons As New List(Of Neuron)
 	Public Property Synapses As New List(Of Synapse)
-	Public Property Fitness As New List(Of Double)
 	Public Sub New()
 		LayerQTY = Settings.LayerQTY
 		NeuronQTY = Settings.NeuronQTY
@@ -197,10 +212,10 @@ Public Class Network
 	End Property
 
 	Public Sub Initialize()
-		For i = 1 To totalNerons
+		For i = 1 To TotalNerons
 			Neurons.Add(New Neuron With {.Bias = RNG(Settings.RNGBounds * -1, Settings.RNGBounds)})
 		Next
-		For i = 1 To totalSynapses
+		For i = 1 To TotalSynapses
 			Synapses.Add(New Synapse With {.Weight = RNG(Settings.RNGBounds * -1, Settings.RNGBounds)})
 		Next
 	End Sub

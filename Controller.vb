@@ -132,6 +132,7 @@ Public Class Setting 'Defaults exist just so that the changes stand out when ser
 
 	Public Property Crossover As Boolean = True
 	Public Property CrossoverType As String = "Point" 'Uniform, Point
+	Public Property ElitismPercent As Double = 0.1
 	Public Property FitCrossover As Double = 0.05
 	Public Property RandomCrossover As Double = 0.005
 	Public Property CrossoverPercent As Double = 0.5
